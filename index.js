@@ -19,7 +19,8 @@ const client = MQTT.connect({
 const topicData = 'UBS/+/+/+/+'
 
 client.on('connect', () => {
-    client.subscribe(topicNode)
+    console.log('========= Bridge Connected =========')
+    client.subscribe(topicData)
 })
 
 client.on('message', async (topic, message) => {
@@ -32,7 +33,12 @@ client.on('message', async (topic, message) => {
         const value = parseFloat(message.toString().split(';')[0])
         const milisecond = parseInt(message.toString().split(';')[1]) * 1000
 
-        const point = new Point(measurement).floatField(value).tag('gateway_id', gatewayId).tag('device_id', deviceId).tag('type', type).timestamp(new Date(milisecond))
+        const point = new Point(measurement)
+            .floatField(value)
+            .tag('gateway_id', gatewayId)
+            .tag('device_id', deviceId)
+            .tag('type', type)
+            .timestamp(new Date(milisecond))
 
         const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
         writeApi.writePoint(point)
