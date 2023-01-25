@@ -25,23 +25,27 @@ client.on('connect', () => {
 
 client.on('message', async (topic, message) => {
     if (matches(topicData, topic)) {
-        const gatewayId = topic.split('/')[1]
-        const deviceId = topic.split('/')[2]
-        const measurement = topic.split('/')[3]
-        const type = topic.split('/')[4]
+        try {
+            const gatewayId = topic.split('/')[1]
+            const deviceId = topic.split('/')[2]
+            const measurement = topic.split('/')[3]
+            const type = topic.split('/')[4]
 
-        const value = parseFloat(message.toString().split(';')[0])
-        const milisecond = parseInt(message.toString().split(';')[1]) * 1000
+            const value = parseFloat(message.toString().split(';')[0])
+            const milisecond = parseInt(message.toString().split(';')[1]) * 1000
 
-        const point = new Point(measurement)
-            .floatField(value)
-            .tag('gateway_id', gatewayId)
-            .tag('device_id', deviceId)
-            .tag('type', type)
-            .timestamp(new Date(milisecond))
+            const point = new Point(measurement)
+                .floatField('value', value)
+                .tag('gateway_id', gatewayId)
+                .tag('device_id', deviceId)
+                .tag('type', type)
+                .timestamp(new Date(milisecond))
 
-        const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
-        writeApi.writePoint(point)
-        await writeApi.close()
+            const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
+            writeApi.writePoint(point)
+            await writeApi.close()
+        } catch (error) {
+            console.error(error)
+        }
     }
 })
