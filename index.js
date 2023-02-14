@@ -32,9 +32,11 @@ client.on('message', async (topic, message) => {
             const measurement = topic.split('/')[3] + type
             
             const messageId = message.toString().split(';')[0]
-            const milisecond = parseInt(message.toString().split(';')[1]) * 1000
+            const milisecond = parseInt(message.toString().split(';')[1]) * 1000 
             const value = parseFloat(message.toString().split(';')[2])
             
+            if (milisecond === 0) return
+
             const point = new Point(measurement)
                 .floatField('value', value)
                 .stringField('message_id', messageId)
