@@ -28,8 +28,8 @@ client.on('message', async (topic, message) => {
         try {
             const gatewayId = topic.split('/')[1]
             const deviceId = topic.split('/')[2]
-            const measurement = topic.split('/')[3]
             const type = topic.split('/')[4]
+            const measurement = topic.split('/')[3] + type
             
             const messageId = message.toString().split(';')[0]
             const milisecond = parseInt(message.toString().split(';')[1]) * 1000
@@ -40,7 +40,6 @@ client.on('message', async (topic, message) => {
                 .stringField('message_id', messageId)
                 .tag('gateway_id', gatewayId)
                 .tag('device_id', deviceId)
-                .tag('type', type)
                 .timestamp(new Date(milisecond))
 
             const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
