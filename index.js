@@ -40,7 +40,7 @@ client.on('message', async (topic, message) => {
                 .stringField('message_id', messageId)
                 .tag('gateway_id', gatewayId)
                 .tag('device_id', deviceId)
-                .stringField(new Date(milisecond))
+                .stringField('time_device',new Date(milisecond))
 
             const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
             writeApi.writePoint(point)
