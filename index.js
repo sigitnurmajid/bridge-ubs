@@ -31,18 +31,16 @@ client.on('message', async (topic, message) => {
             const type = topic.split('/')[4]
             const measurement = topic.split('/')[3] + type
             
-            const messageId = message.toString().split(';')[0]
+            const messageId = parseInt(message.toString().split(';')[0])
             const milisecond = parseInt(message.toString().split(';')[1]) * 1000 
             const value = parseFloat(message.toString().split(';')[2])
-            
-            if (milisecond === 0) return
 
             const point = new Point(measurement)
                 .floatField('value', value)
                 .stringField('message_id', messageId)
                 .tag('gateway_id', gatewayId)
                 .tag('device_id', deviceId)
-                .timestamp(new Date(milisecond))
+                .stringField(new Date(milisecond))
 
             const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
             writeApi.writePoint(point)
