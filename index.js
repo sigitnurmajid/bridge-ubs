@@ -16,7 +16,7 @@ const client = MQTT.connect({
     port: process.env.MQTT_PORT
 })
 
-const topicData = 'UBS/+/+/+/+'
+const topicData = 'kbeacon/publish/+'
 
 client.on('connect', () => {
     console.log('========= Bridge Connected =========')
@@ -26,27 +26,25 @@ client.on('connect', () => {
 client.on('message', async (topic, message) => {
     if (matches(topicData, topic)) {
         try {
-            const gatewayId = topic.split('/')[1]
-            const deviceId = topic.split('/')[2]
-            const type = topic.split('/')[4]
-            const measurement = topic.split('/')[3] + type
-            
-            const messageId = parseInt(message.toString().split(';')[0])
-            const milisecond = parseInt(message.toString().split(';')[1]) * 1000 
-            const value = parseFloat(message.toString().split(';')[2])
+            const jsonMessage = JSON.parse(message.toString())
+            const gatewayId = jsonMessage.gmac
 
-            const point = new Point(measurement)
-                .floatField('value', value)
-                .stringField('message_id', messageId)
-                .tag('gateway_id', gatewayId)
-                .tag('device_id', deviceId)
-                .stringField('time_device',new Date(milisecond))
+            if (!jsonMessage.hasOwnProperty('obj')) return
+
+            const points = jsonMessage.obj.map(element => {
+                return new Point('beacon')
+                    .intField('rssi', element.rssi)
+                    .stringField('stored_time', new Date().toISOString())
+                    .tag('gateway_id', gatewayId)
+                    .tag('beacon_id', element.dmac)
+                    .timestamp(new Date(element.time.replace(" ", "T").concat("Z")))
+            })
 
             const writeApi = influxApi.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET)
-            writeApi.writePoint(point)
+            writeApi.writePoints(points)
             await writeApi.close()
         } catch (error) {
-            console.error(error)
+            console.error(new Date().toISOString(), error)
         }
     }
 })

@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  emqx:
+    container_name: emqx
+    image: emqx/emqx:5.0.4
+    restart: always
+    environment:
+      EMQX_NAME: emqx
+      EMQX_HOST: 127.0.0.1
+    ports:
+      - 1883:1883
+      - 18083:18083
+      - 8081:8081
+      - 8083:8083
+      - 8084:8084
+      - 8883:8883
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.6.0-alpine
+    restart: always
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    volumes:
+      - influxdb_volume:/var/lib/influxdb2
+
+volumes:
+  postgres_volume:
+  influxdb_volume:
